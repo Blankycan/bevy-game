@@ -1,4 +1,10 @@
 use bevy::prelude::*;
+use bevy_inspector_egui::quick::WorldInspectorPlugin;
+
+mod character;
+use character::{CharacterBundle, TurnTowardCamera, turning_toward_camera};
+
+
 
 fn spawn_camera(mut commands: Commands) {
     commands.spawn(Camera3dBundle {
@@ -17,7 +23,9 @@ fn spawn_basic_scene(
         mesh: meshes.add(Mesh::from(shape::Plane { size: 10.0 })),
         material: materials.add(Color::rgb(0.4, 0.8, 0.4).into()),
         ..default()
-    });
+    })
+    .insert(Name::new("Ground"));
+
     commands.spawn(PbrBundle {
         mesh: meshes.add(Mesh::from(shape::Capsule {
             radius: 0.5,
@@ -26,16 +34,24 @@ fn spawn_basic_scene(
         material: materials.add(Color::rgb(0.4, 0.45, 0.8).into()),
         transform: Transform::from_xyz(0.0, 1.0, 0.0),
         ..default()
-    });
+    })
+    .insert(Name::new("Capsule"));
+
     commands.spawn(PbrBundle {
         mesh: meshes.add(Mesh::from(shape::Quad {
             size: Vec2::new(1.0, 2.0),
             ..default()
         })),
         material: materials.add(Color::WHITE.into()),
-        transform: Transform::from_xyz(1.0, 1.0, 2.0).with_rotation(Quat::from_rotation_y(0.5)),
+        transform: Transform::from_xyz(1.0, 1.0, 2.0),
+        ..default()
+    })
+    .insert(Name::new("2D Player"))
+    .insert(CharacterBundle {
+        turn_to_camera: TurnTowardCamera(true),
         ..default()
     });
+
     // Light
     commands.spawn(PointLightBundle {
         point_light: PointLight {
@@ -45,15 +61,21 @@ fn spawn_basic_scene(
         },
         transform: Transform::from_xyz(4.0, 8.0, 4.0),
         ..default()
-    });
+    })
+    .insert(Name::new("Point Light"));
 }
 
 fn main() {
     println!("Starting Bevy app..");
     App::new()
         .insert_resource(ClearColor(Color::rgb(0.16, 0.16, 0.16)))
+        .add_plugins(DefaultPlugins)
+        // Inspector
+        .add_plugin(WorldInspectorPlugin)
+        .register_type::<TurnTowardCamera>()
+        // Our systems
         .add_startup_system(spawn_basic_scene)
         .add_startup_system(spawn_camera)
-        .add_plugins(DefaultPlugins)
+        .add_system(turning_toward_camera)
         .run();
 }
