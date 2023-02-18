@@ -16,3 +16,5 @@ opt-level = 3
 [dependencies]
 bevy = { version = "0.9.1", features = ["dynamic"] }
 bevy-inspector-egui = "0.17.0"
+bevy_asset_loader = { version = "0.14.1", features = ["2d"] }
+bevy_sprite3d = "2.3"
