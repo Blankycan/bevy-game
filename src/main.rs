@@ -1,12 +1,16 @@
-use std::f32::{NEG_INFINITY, INFINITY};
+use std::f32::{INFINITY, NEG_INFINITY};
 
-use bevy::{prelude::*, input::mouse::{MouseWheel, MouseMotion}};
+use bevy::{
+    input::mouse::{MouseMotion, MouseWheel},
+    prelude::*,
+};
 use bevy_asset_loader::prelude::*;
 use bevy_inspector_egui::quick::WorldInspectorPlugin;
 use bevy_sprite3d::Sprite3dPlugin;
 
+mod animation;
 mod character;
-use crate::character::{PlayerPlugin, Player};
+use crate::character::{Player, PlayerPlugin};
 
 #[derive(Clone, Debug, Eq, Hash, PartialEq)]
 enum GameState {
@@ -17,7 +21,7 @@ enum GameState {
 #[derive(SystemLabel)]
 pub enum GameSystemLabel {
     Player,
-    Camera
+    Camera,
 }
 
 #[derive(AssetCollection, Resource)]
@@ -51,7 +55,7 @@ fn main() {
         .add_system_set(
             SystemSet::on_update(GameState::Playing)
                 .with_system(camera_follow)
-                .with_system(camera_control)
+                .with_system(camera_control),
         )
         .run();
 }
@@ -76,7 +80,7 @@ struct FollowCamera {
     rotation_vertical: f32,
     rotation_vertical_speed: f32,
     rotation_vertical_limit_min: f32,
-    rotation_vertical_limit_max: f32
+    rotation_vertical_limit_max: f32,
 }
 
 impl Default for FollowCamera {
@@ -95,7 +99,7 @@ impl Default for FollowCamera {
             rotation_vertical: -0.6,
             rotation_vertical_speed: 0.3,
             rotation_vertical_limit_min: -1.2,
-            rotation_vertical_limit_max: -0.05
+            rotation_vertical_limit_max: -0.05,
         }
     }
 }
@@ -103,21 +107,22 @@ impl Default for FollowCamera {
 fn spawn_camera(mut commands: Commands) {
     let camera_transform = Transform::from_xyz(2.0, 2.5, 5.0).looking_at(Vec3::ZERO, Vec3::Y);
 
-    commands.spawn(Camera3dBundle {
-        transform: camera_transform,
-        ..default()
-    })
-    .insert(FollowCamera {
-        offset: Vec3::new(0.0, 0.5, 0.0),
-        ..default()
-    })
-    .insert(Name::new("Follow Camera"));
+    commands
+        .spawn(Camera3dBundle {
+            transform: camera_transform,
+            ..default()
+        })
+        .insert(FollowCamera {
+            offset: Vec3::new(0.0, 0.5, 0.0),
+            ..default()
+        })
+        .insert(Name::new("Follow Camera"));
 }
 
 fn camera_follow(
     mut camera_query: Query<(&mut Transform, &FollowCamera), (With<FollowCamera>, Without<Player>)>,
     player_query: Query<&Transform, (With<Player>, Without<Camera>)>,
-    time: Res<Time>
+    time: Res<Time>,
 ) {
     let player_transform = player_query.single();
     let (mut camera_transform, follow_camera) = camera_query.single_mut();
@@ -125,9 +130,17 @@ fn camera_follow(
     let rot_hor = Quat::from_axis_angle(Vec3::Y, follow_camera.rotation_horizontal);
     let rot_ver = Quat::from_axis_angle(Vec3::X, follow_camera.rotation_vertical);
     let target_rotation = rot_hor * rot_ver;
-    let target_position = target_rotation.mul_vec3(Vec3::Z * follow_camera.zoom) + player_transform.translation + follow_camera.offset;
-    camera_transform.rotation = camera_transform.rotation.lerp(target_rotation, follow_camera.speed_transition * time.delta_seconds());
-    camera_transform.translation = camera_transform.translation.lerp(target_position, follow_camera.speed_transition * time.delta_seconds());
+    let target_position = target_rotation.mul_vec3(Vec3::Z * follow_camera.zoom)
+        + player_transform.translation
+        + follow_camera.offset;
+    camera_transform.rotation = camera_transform.rotation.lerp(
+        target_rotation,
+        follow_camera.speed_transition * time.delta_seconds(),
+    );
+    camera_transform.translation = camera_transform.translation.lerp(
+        target_position,
+        follow_camera.speed_transition * time.delta_seconds(),
+    );
 }
 
 fn camera_control(
@@ -136,7 +149,7 @@ fn camera_control(
     mouse: Res<Input<MouseButton>>,
     mut scroll_evr: EventReader<MouseWheel>,
     mut motion_evr: EventReader<MouseMotion>,
-    time: Res<Time>
+    time: Res<Time>,
 ) {
     use bevy::input::mouse::MouseScrollUnit;
     let mut follow_camera = camera_query.single_mut();
@@ -146,22 +159,37 @@ fn camera_control(
         match ev.unit {
             MouseScrollUnit::Line => {
                 follow_camera.zoom -= ev.y * follow_camera.zoom_speed * time.delta_seconds();
-                follow_camera.zoom = follow_camera.zoom.clamp(follow_camera.zoom_limit_min, follow_camera.zoom_limit_max);
+                follow_camera.zoom = follow_camera
+                    .zoom
+                    .clamp(follow_camera.zoom_limit_min, follow_camera.zoom_limit_max);
             }
             MouseScrollUnit::Pixel => {
                 follow_camera.zoom -= ev.y * follow_camera.zoom_speed * time.delta_seconds();
-                follow_camera.zoom = follow_camera.zoom.clamp(follow_camera.zoom_limit_min, follow_camera.zoom_limit_max);
+                follow_camera.zoom = follow_camera
+                    .zoom
+                    .clamp(follow_camera.zoom_limit_min, follow_camera.zoom_limit_max);
             }
         }
     }
 
     // Rotate
-    if mouse.pressed(MouseButton::Middle) || (mouse.pressed(MouseButton::Right) && keyboard.any_pressed([KeyCode::LShift, KeyCode::RShift])) {
+    if mouse.pressed(MouseButton::Middle)
+        || (mouse.pressed(MouseButton::Right)
+            && keyboard.any_pressed([KeyCode::LShift, KeyCode::RShift]))
+    {
         for ev in motion_evr.iter() {
-            follow_camera.rotation_horizontal -= ev.delta.x * follow_camera.rotation_horizontal_speed * time.delta_seconds();
-            follow_camera.rotation_horizontal = follow_camera.rotation_horizontal.clamp(follow_camera.rotation_horizontal_limit_min, follow_camera.rotation_horizontal_limit_max);
-            follow_camera.rotation_vertical += ev.delta.y * follow_camera.rotation_vertical_speed * time.delta_seconds();
-            follow_camera.rotation_vertical = follow_camera.rotation_vertical.clamp(follow_camera.rotation_vertical_limit_min, follow_camera.rotation_vertical_limit_max);
+            follow_camera.rotation_horizontal -=
+                ev.delta.x * follow_camera.rotation_horizontal_speed * time.delta_seconds();
+            follow_camera.rotation_horizontal = follow_camera.rotation_horizontal.clamp(
+                follow_camera.rotation_horizontal_limit_min,
+                follow_camera.rotation_horizontal_limit_max,
+            );
+            follow_camera.rotation_vertical +=
+                ev.delta.y * follow_camera.rotation_vertical_speed * time.delta_seconds();
+            follow_camera.rotation_vertical = follow_camera.rotation_vertical.clamp(
+                follow_camera.rotation_vertical_limit_min,
+                follow_camera.rotation_vertical_limit_max,
+            );
         }
     }
 }
