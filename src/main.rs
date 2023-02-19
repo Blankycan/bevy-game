@@ -108,7 +108,7 @@ fn spawn_camera(mut commands: Commands) {
         ..default()
     })
     .insert(FollowCamera {
-        offset: Vec3::new(0.0, 0.32, 0.0),
+        offset: Vec3::new(0.0, 0.5, 0.0),
         ..default()
     })
     .insert(Name::new("Follow Camera"));

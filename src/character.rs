@@ -1,4 +1,4 @@
-use std::{f32::consts::PI, fmt};
+use std::{f32::{consts::PI, EPSILON}, fmt};
 
 use bevy::prelude::*;
 use bevy_sprite3d::{AtlasSprite3d, AtlasSprite3dComponent, Sprite3dParams};
@@ -116,19 +116,20 @@ pub fn spawn_npcs(
 }
 
 fn control_player (
-    mut player_query: Query<&mut Transform, (With<Player>, Without<Camera>)>,
+    mut player_query: Query<(&mut Transform, &mut AnimatedCharacter), (With<Player>, Without<Camera>)>,
     camera_query: Query<&Transform, With<Camera>>,
     keyboard: Res<Input<KeyCode>>,
     time: Res<Time>
 ) {
-    let mut transform = player_query.single_mut();
+    let (mut character_transform, mut animated_character) = player_query.single_mut();
     let mut direction = Vec3::splat(0.0);
+    let mut speed = animated_character.walk_speed;
 
     if keyboard.pressed(KeyCode::W) {
-        direction.z -= 1.0;
+        direction.z += 1.0;
     }
     if keyboard.pressed(KeyCode::S) {
-        direction.z += 1.0;
+        direction.z -= 1.0;
     }
     if keyboard.pressed(KeyCode::A) {
         direction.x -= 1.0;
@@ -136,21 +137,48 @@ fn control_player (
     if keyboard.pressed(KeyCode::D) {
         direction.x += 1.0;
     }
+    // No movement
+    if direction.length_squared() < EPSILON {
+        return
+    }
+    if keyboard.any_pressed([KeyCode::LShift, KeyCode::RShift]) {
+        speed = animated_character.run_speed;
+    }
 
+    // Transform the vector based on the camera
     let camera_transform = camera_query.single();
-    
-    let mut forward = transform.translation - camera_transform.translation;
-    forward.y = 0.0;
-    forward = forward.normalize();
-    let rot = Quat::from_vec4(forward.extend(0.0)).mul_vec3(direction);
-    //let rot = camera_transform.rotation.mul_vec3(direction.extend(0.0));
-    if(direction.x != 0.0 || direction.y != 0.0 || direction.z != 0.0) {
-        println!("Dir: {}, Forward: {}, Rot: {}", direction, forward, rot);
+    let (forward, right) = get_flat_camera_forward_and_right(camera_transform);
+    let vertical = direction * forward;
+    let horizontal = direction * right;
+    let direction_vector = Vec3::new(horizontal.x + horizontal.z, 0.0, vertical.x + vertical.z).normalize();
+
+    let move_force = direction_vector * speed * time.delta_seconds();
+    move_character(&mut character_transform, &move_force, Some(&mut animated_character));
+}
+
+fn move_character(
+    character_transform: &mut Transform,
+    move_force: &Vec3,
+    animated_character: Option<&mut AnimatedCharacter>
+) {
+    // Apply the heading and update the character direction if necessary
+    if animated_character.is_some() {
+        animated_character.unwrap().heading = *move_force;
     }
     
-    
-    transform.translation.x += rot.x * 1.0 * time.delta_seconds();
-    transform.translation.z += rot.z * 1.0 * time.delta_seconds();
+    character_transform.translation += *move_force;
+}
+
+// This removes the Y-component of the vectors, so the directions are flat to the ground.
+fn get_flat_camera_forward_and_right(
+    camera_transform: &Transform
+) -> (Vec3, Vec3) {
+    let mut forward = camera_transform.forward();
+    forward.y = 0.0;
+    forward = forward.normalize();
+    let right = Quat::from_euler(EulerRot::XYZ, 0.0, -PI * 0.5, 0.0) * forward;
+
+    (forward, right)
 }
 
 #[derive(Component)]
@@ -166,8 +194,8 @@ fn turning_toward_camera(
     time: Res<Time>,
 ) {
     let camera = camera_query.single();
-    for (should_turn, mut obj_transform, mut animated_character, mut atlas_sprite) in &mut object_query {
-        if should_turn.0 == true {
+    for (should_turn, mut obj_transform, animated_character, atlas_sprite) in &mut object_query {
+        if should_turn.0 {
             let mut look_position = camera.translation - obj_transform.translation;
             look_position.y = 0.0;
             let rotation = Transform::IDENTITY.looking_at(look_position, Vec3::Y).rotation;
@@ -194,19 +222,19 @@ fn get_character_direction(
     let angle = animated_character.heading.angle_between(viewing_position);
     
     if angle < (PI / 3.0) {
-        return Direction::Down
+        Direction::Down
     }
     else if angle > (2.0 * (PI / 3.0)) {
-        return Direction::Up;
+        Direction::Up
     }
     else {
         let right = Quat::from_euler(EulerRot::XYZ, 0.0, PI * 0.5, 0.0) * animated_character.heading;
         let dot = towards_camera.dot(right);
         if dot < 0.0 {
-            return Direction::Right
+            Direction::Right
         }
         else {
-            return Direction::Left;
+            Direction::Left
         }
     }
 }
@@ -215,7 +243,7 @@ fn set_character_direction(
     mut animated_character: &mut AnimatedCharacter,
     direction: Direction,
     mut atlas_sprite: &mut AtlasSprite3dComponent,
-    mut obj_transform: &mut Transform
+    mut character_transform: &mut Transform
 ) {
     // Find which index in the animation we're currently on
     let current_sprite = atlas_sprite.index;
@@ -236,10 +264,10 @@ fn set_character_direction(
     };
 
     if direction == Direction::Right {
-        obj_transform.scale.x = -(obj_transform.scale.x).abs();
+        character_transform.scale.x = -(character_transform.scale.x).abs();
     }
     else {
-        obj_transform.scale.x = (obj_transform.scale.x).abs();
+        character_transform.scale.x = (character_transform.scale.x).abs();
     }
 
     atlas_sprite.index = new_sprite_index;
@@ -280,8 +308,13 @@ impl fmt::Display for Animation {
 
 #[derive(Component, Reflect)]
 struct AnimatedCharacter {
+    // The orientation that the character is facing
     heading: Vec3,
+    walk_speed: f32,
+    run_speed: f32,
+    // The direction the character is show, from camera's perspective
     direction: Direction,
+    // What animation the character is performing
     animation: Animation,
     anim_down: [usize; 3],
     anim_left: [usize; 3],
@@ -292,6 +325,8 @@ impl Default for AnimatedCharacter {
     fn default() -> Self {
         Self {
             heading: Vec3::Z,
+            walk_speed: 2.0,
+            run_speed: 5.0,
             direction: Direction::Down,
             animation: Animation::Idle,
             anim_down: [0, 3, 6],
