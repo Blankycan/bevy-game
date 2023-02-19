@@ -116,18 +116,19 @@ pub fn spawn_npcs(
 }
 
 fn control_player (
-    mut player_query: Query<&mut Transform, With<Player>>,
+    mut player_query: Query<&mut Transform, (With<Player>, Without<Camera>)>,
+    camera_query: Query<&Transform, With<Camera>>,
     keyboard: Res<Input<KeyCode>>,
     time: Res<Time>
 ) {
     let mut transform = player_query.single_mut();
-    let mut direction = Vec2::splat(0.0);
+    let mut direction = Vec3::splat(0.0);
 
     if keyboard.pressed(KeyCode::W) {
-        direction.y -= 1.0;
+        direction.z -= 1.0;
     }
     if keyboard.pressed(KeyCode::S) {
-        direction.y += 1.0;
+        direction.z += 1.0;
     }
     if keyboard.pressed(KeyCode::A) {
         direction.x -= 1.0;
@@ -135,9 +136,21 @@ fn control_player (
     if keyboard.pressed(KeyCode::D) {
         direction.x += 1.0;
     }
+
+    let camera_transform = camera_query.single();
     
-    transform.translation.x += direction.x * 1.0 * time.delta_seconds();
-    transform.translation.z += direction.y * 1.0 * time.delta_seconds();
+    let mut forward = transform.translation - camera_transform.translation;
+    forward.y = 0.0;
+    forward = forward.normalize();
+    let rot = Quat::from_vec4(forward.extend(0.0)).mul_vec3(direction);
+    //let rot = camera_transform.rotation.mul_vec3(direction.extend(0.0));
+    if(direction.x != 0.0 || direction.y != 0.0 || direction.z != 0.0) {
+        println!("Dir: {}, Forward: {}, Rot: {}", direction, forward, rot);
+    }
+    
+    
+    transform.translation.x += rot.x * 1.0 * time.delta_seconds();
+    transform.translation.z += rot.z * 1.0 * time.delta_seconds();
 }
 
 #[derive(Component)]
@@ -148,12 +161,11 @@ pub struct Player;
 pub struct TurnTowardCamera(pub bool);
 
 fn turning_toward_camera(
-    
     mut object_query: Query<(&TurnTowardCamera, &mut Transform, Option<&mut AnimatedCharacter>, Option<&mut AtlasSprite3dComponent>)>,
-    camera: Query<&Transform, (With<Camera>, Without<TurnTowardCamera>)>,
+    camera_query: Query<&Transform, (With<Camera>, Without<TurnTowardCamera>)>,
     time: Res<Time>,
 ) {
-    let camera = camera.single();
+    let camera = camera_query.single();
     for (should_turn, mut obj_transform, mut animated_character, mut atlas_sprite) in &mut object_query {
         if should_turn.0 == true {
             let mut look_position = camera.translation - obj_transform.translation;
