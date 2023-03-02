@@ -10,6 +10,7 @@ use bevy_sprite3d::Sprite3dPlugin;
 
 mod animation;
 mod character;
+use crate::animation::AnimationPlugin;
 use crate::character::{Player, PlayerPlugin};
 
 #[derive(Clone, Debug, Eq, Hash, PartialEq)]
@@ -52,6 +53,7 @@ fn main() {
         .register_type::<FollowCamera>()
         .add_startup_system(spawn_basic_scene)
         .add_plugin(PlayerPlugin)
+        .add_plugin(AnimationPlugin)
         .add_system_set(
             SystemSet::on_update(GameState::Playing)
                 .with_system(camera_follow)
