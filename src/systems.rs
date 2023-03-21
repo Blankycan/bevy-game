@@ -31,12 +31,10 @@ pub fn spawn_basic_scene(
         .insert(Name::new("Point Light"));
     */
 
-    /*
     commands.insert_resource(AmbientLight {
-        color: Color::ORANGE_RED,
-        brightness: 0.02,
+        color: Color::WHITE,
+        brightness: 1.0,
     });
-    */
 
     /*
     commands

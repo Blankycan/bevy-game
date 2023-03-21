@@ -23,8 +23,8 @@ enum GameState {
 
 #[derive(AssetCollection, Resource)]
 pub struct ImageAssets {
-    #[asset(texture_atlas(tile_size_x = 16.0, tile_size_y = 16.0))]
-    #[asset(texture_atlas(columns = 9, rows = 3))]
+    #[asset(texture_atlas(tile_size_x = 20.0, tile_size_y = 28.0))]
+    #[asset(texture_atlas(columns = 4, rows = 9))]
     #[asset(path = "Characters.png")]
     character_sheet: Handle<TextureAtlas>,
 }

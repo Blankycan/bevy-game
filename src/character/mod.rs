@@ -13,7 +13,8 @@ impl Plugin for PlayerPlugin {
     fn build(&self, app: &mut App) {
         app
             // On enter
-            .add_systems((spawn_player, spawn_npcs).in_schedule(OnEnter(GameState::Playing)))
+            .add_system(spawn_player.in_schedule(OnEnter(GameState::Playing)))
+            //.add_systems((spawn_player, spawn_npcs).in_schedule(OnEnter(GameState::Playing)))
             // On update
             .add_system(control_player.in_set(OnUpdate(GameState::Playing)));
     }

@@ -15,6 +15,7 @@ impl Plugin for AnimationPlugin {
         app
             // Register types
             .register_type::<TurnTowardCamera>()
+            .register_type::<AnimatedCharacter>()
             // On update
             .add_systems(
                 (turning_toward_camera, animate_sprite_system)

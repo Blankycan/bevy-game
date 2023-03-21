@@ -22,9 +22,9 @@ pub fn get_character_direction(
             Quat::from_euler(EulerRot::XYZ, 0.0, PI * 0.5, 0.0) * animated_character.heading;
         let dot = towards_camera.dot(right);
         if dot < 0.0 {
-            Direction::Right
-        } else {
             Direction::Left
+        } else {
+            Direction::Right
         }
     }
 }
@@ -33,7 +33,6 @@ pub fn set_character_direction(
     mut animated_character: &mut AnimatedCharacter,
     direction: Direction,
     mut atlas_sprite: &mut AtlasSprite3dComponent,
-    mut character_transform: &mut Transform,
 ) {
     if animated_character.direction == direction {
         return;
@@ -74,13 +73,6 @@ pub fn set_character_direction(
         }
     }
 
-    // All right-facing sprites are scaled with negative X
-    if direction == Direction::Right {
-        character_transform.scale.x = -(character_transform.scale.x).abs();
-    } else {
-        character_transform.scale.x = (character_transform.scale.x).abs();
-    }
-
     atlas_sprite.index = new_sprite_index;
     animated_character.direction = direction;
 }
@@ -99,6 +91,7 @@ pub fn set_animation_state(
 
 // Try to reset the current animation
 pub fn reset_animation(animated_character: &mut AnimatedCharacter) {
+    println!("reset_animation");
     let state = animated_character.animation_state;
     let direction = animated_character.direction;
     let some_animation = animated_character.animations.get_mut(&(state, direction));
@@ -138,6 +131,10 @@ pub fn animate_sprite_system(
 
         // Update the atlas sprite
         if atlas_sprite.index != current_sprite_index {
+            println!(
+                "animate_sprite_system, {}, index: ({}, {}), frames: {:?}",
+                direction, state, current_sprite_index, animation.frames
+            );
             atlas_sprite.index = current_sprite_index;
         }
     }
@@ -169,12 +166,12 @@ pub fn turning_toward_camera(
             if let Some(mut animated_character) = animated_character {
                 let direction = get_character_direction(&animated_character, look_position);
                 if direction != animated_character.direction {
+                    println!("Character direction: {}", direction);
                     if let Some(mut atlas_sprite) = atlas_sprite {
                         set_character_direction(
                             &mut animated_character,
                             direction,
                             &mut atlas_sprite,
-                            &mut obj_transform,
                         );
                     }
                 }

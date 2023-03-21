@@ -20,12 +20,12 @@ pub fn spawn_player(
         .spawn(
             AtlasSprite3d {
                 atlas: images.character_sheet.clone(),
-                pixels_per_metre: 16.,
+                pixels_per_metre: 28.0,
                 partial_alpha: true,
                 unlit: false,
-                index: 12,
+                index: 0,
                 pivot: Some(Vec2::new(0.5, 0.0)),
-                transform: Transform::from_xyz(1.0, 0.0, 2.0),
+                transform: Transform::from_xyz(1.0, -0.15, 2.0),
                 ..default()
             }
             .bundle(&mut sprite_params),
@@ -44,7 +44,7 @@ pub fn spawn_player(
                         },
                     ),
                     (
-                        (AnimationState::Idle, Direction::Left),
+                        (AnimationState::Idle, Direction::Right),
                         Animation {
                             frames: [1].to_vec(),
                             ..default()
@@ -58,37 +58,37 @@ pub fn spawn_player(
                         },
                     ),
                     (
-                        (AnimationState::Idle, Direction::Right),
+                        (AnimationState::Idle, Direction::Left),
                         Animation {
-                            frames: [1].to_vec(),
+                            frames: [3].to_vec(),
                             ..default()
                         },
                     ),
                     (
                         (AnimationState::Walk, Direction::Down),
                         Animation {
-                            frames: [3, 0, 6, 0].to_vec(),
-                            ..default()
-                        },
-                    ),
-                    (
-                        (AnimationState::Walk, Direction::Left),
-                        Animation {
-                            frames: [4, 1, 7, 1].to_vec(),
-                            ..default()
-                        },
-                    ),
-                    (
-                        (AnimationState::Walk, Direction::Up),
-                        Animation {
-                            frames: [5, 2, 8, 2].to_vec(),
+                            frames: core::array::from_fn::<usize, 8, _>(|i| i * 4 + 4).to_vec(),
                             ..default()
                         },
                     ),
                     (
                         (AnimationState::Walk, Direction::Right),
                         Animation {
-                            frames: [4, 1, 7, 1].to_vec(),
+                            frames: core::array::from_fn::<usize, 8, _>(|i| i * 4 + 5).to_vec(),
+                            ..default()
+                        },
+                    ),
+                    (
+                        (AnimationState::Walk, Direction::Up),
+                        Animation {
+                            frames: core::array::from_fn::<usize, 8, _>(|i| i * 4 + 6).to_vec(),
+                            ..default()
+                        },
+                    ),
+                    (
+                        (AnimationState::Walk, Direction::Left),
+                        Animation {
+                            frames: core::array::from_fn::<usize, 8, _>(|i| i * 4 + 7).to_vec(),
                             ..default()
                         },
                     ),
@@ -108,12 +108,12 @@ pub fn spawn_npcs(
         .spawn(
             AtlasSprite3d {
                 atlas: images.character_sheet.clone(),
-                pixels_per_metre: 16.,
+                pixels_per_metre: 28.0,
                 partial_alpha: true,
                 unlit: false,
-                index: 12,
+                index: 0,
                 pivot: Some(Vec2::new(0.5, 0.0)),
-                transform: Transform::from_xyz(-2.0, 0.0, -1.3),
+                transform: Transform::from_xyz(-2.0, -0.15, -1.3),
                 ..default()
             }
             .bundle(&mut sprite_params),
@@ -126,56 +126,56 @@ pub fn spawn_npcs(
                     (
                         (AnimationState::Idle, Direction::Down),
                         Animation {
-                            frames: [9].to_vec(),
-                            ..default()
-                        },
-                    ),
-                    (
-                        (AnimationState::Idle, Direction::Left),
-                        Animation {
-                            frames: [10].to_vec(),
-                            ..default()
-                        },
-                    ),
-                    (
-                        (AnimationState::Idle, Direction::Up),
-                        Animation {
-                            frames: [11].to_vec(),
+                            frames: [0].to_vec(),
                             ..default()
                         },
                     ),
                     (
                         (AnimationState::Idle, Direction::Right),
                         Animation {
-                            frames: [10].to_vec(),
+                            frames: [1].to_vec(),
+                            ..default()
+                        },
+                    ),
+                    (
+                        (AnimationState::Idle, Direction::Up),
+                        Animation {
+                            frames: [2].to_vec(),
+                            ..default()
+                        },
+                    ),
+                    (
+                        (AnimationState::Idle, Direction::Left),
+                        Animation {
+                            frames: [3].to_vec(),
                             ..default()
                         },
                     ),
                     (
                         (AnimationState::Walk, Direction::Down),
                         Animation {
-                            frames: [12, 9, 15, 9].to_vec(),
-                            ..default()
-                        },
-                    ),
-                    (
-                        (AnimationState::Walk, Direction::Left),
-                        Animation {
-                            frames: [13, 10, 16, 10].to_vec(),
-                            ..default()
-                        },
-                    ),
-                    (
-                        (AnimationState::Walk, Direction::Up),
-                        Animation {
-                            frames: [14, 11, 17, 11].to_vec(),
+                            frames: core::array::from_fn::<usize, 8, _>(|i| i * 4 + 4).to_vec(),
                             ..default()
                         },
                     ),
                     (
                         (AnimationState::Walk, Direction::Right),
                         Animation {
-                            frames: [13, 10, 16, 10].to_vec(),
+                            frames: core::array::from_fn::<usize, 8, _>(|i| i * 4 + 5).to_vec(),
+                            ..default()
+                        },
+                    ),
+                    (
+                        (AnimationState::Walk, Direction::Up),
+                        Animation {
+                            frames: core::array::from_fn::<usize, 8, _>(|i| i * 4 + 6).to_vec(),
+                            ..default()
+                        },
+                    ),
+                    (
+                        (AnimationState::Walk, Direction::Left),
+                        Animation {
+                            frames: core::array::from_fn::<usize, 8, _>(|i| i * 4 + 7).to_vec(),
                             ..default()
                         },
                     ),
@@ -189,12 +189,12 @@ pub fn spawn_npcs(
         .spawn(
             AtlasSprite3d {
                 atlas: images.character_sheet.clone(),
-                pixels_per_metre: 16.,
+                pixels_per_metre: 28.0,
                 partial_alpha: true,
                 unlit: false,
-                index: 12,
+                index: 0,
                 pivot: Some(Vec2::new(0.5, 0.0)),
-                transform: Transform::from_xyz(-0.8, 0.0, -1.6),
+                transform: Transform::from_xyz(-0.8, -0.15, -1.6),
                 ..default()
             }
             .bundle(&mut sprite_params),
@@ -207,56 +207,56 @@ pub fn spawn_npcs(
                     (
                         (AnimationState::Idle, Direction::Down),
                         Animation {
-                            frames: [18].to_vec(),
-                            ..default()
-                        },
-                    ),
-                    (
-                        (AnimationState::Idle, Direction::Left),
-                        Animation {
-                            frames: [19].to_vec(),
-                            ..default()
-                        },
-                    ),
-                    (
-                        (AnimationState::Idle, Direction::Up),
-                        Animation {
-                            frames: [20].to_vec(),
+                            frames: [0].to_vec(),
                             ..default()
                         },
                     ),
                     (
                         (AnimationState::Idle, Direction::Right),
                         Animation {
-                            frames: [19].to_vec(),
+                            frames: [1].to_vec(),
+                            ..default()
+                        },
+                    ),
+                    (
+                        (AnimationState::Idle, Direction::Up),
+                        Animation {
+                            frames: [2].to_vec(),
+                            ..default()
+                        },
+                    ),
+                    (
+                        (AnimationState::Idle, Direction::Left),
+                        Animation {
+                            frames: [3].to_vec(),
                             ..default()
                         },
                     ),
                     (
                         (AnimationState::Walk, Direction::Down),
                         Animation {
-                            frames: [21, 18, 24, 18].to_vec(),
-                            ..default()
-                        },
-                    ),
-                    (
-                        (AnimationState::Walk, Direction::Left),
-                        Animation {
-                            frames: [22, 19, 25, 19].to_vec(),
-                            ..default()
-                        },
-                    ),
-                    (
-                        (AnimationState::Walk, Direction::Up),
-                        Animation {
-                            frames: [23, 20, 26, 20].to_vec(),
+                            frames: core::array::from_fn::<usize, 8, _>(|i| i * 4 + 4).to_vec(),
                             ..default()
                         },
                     ),
                     (
                         (AnimationState::Walk, Direction::Right),
                         Animation {
-                            frames: [22, 19, 25, 19].to_vec(),
+                            frames: core::array::from_fn::<usize, 8, _>(|i| i * 4 + 5).to_vec(),
+                            ..default()
+                        },
+                    ),
+                    (
+                        (AnimationState::Walk, Direction::Up),
+                        Animation {
+                            frames: core::array::from_fn::<usize, 8, _>(|i| i * 4 + 6).to_vec(),
+                            ..default()
+                        },
+                    ),
+                    (
+                        (AnimationState::Walk, Direction::Left),
+                        Animation {
+                            frames: core::array::from_fn::<usize, 8, _>(|i| i * 4 + 7).to_vec(),
                             ..default()
                         },
                     ),

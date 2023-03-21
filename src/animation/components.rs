@@ -1,4 +1,5 @@
-use bevy::{prelude::*, utils::HashMap};
+use bevy::prelude::*;
+use bevy::utils::HashMap;
 use core::fmt;
 use std::f32::EPSILON;
 
@@ -19,17 +20,17 @@ impl fmt::Display for AnimationState {
 #[derive(Reflect, Clone, Copy, PartialEq, Eq, Hash)]
 pub enum Direction {
     Down,
-    Left,
-    Up,
     Right,
+    Up,
+    Left,
 }
 impl fmt::Display for Direction {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
             Direction::Down => write!(f, "Down"),
-            Direction::Left => write!(f, "Left"),
-            Direction::Up => write!(f, "Up"),
             Direction::Right => write!(f, "Right"),
+            Direction::Up => write!(f, "Up"),
+            Direction::Left => write!(f, "Left"),
         }
     }
 }
@@ -47,7 +48,7 @@ impl Default for Animation {
             frames: Vec::new(),
             current: 0,
             speed: 0.1,
-            timer: Timer::from_seconds(0.2, TimerMode::Repeating),
+            timer: Timer::from_seconds(0.1, TimerMode::Repeating),
         }
     }
 }
@@ -61,7 +62,7 @@ impl PartialEq for Animation {
     }
 }
 
-#[derive(Component)]
+#[derive(Component, Reflect)]
 pub struct AnimatedCharacter {
     // The orientation that the character is facing
     pub heading: Vec3,
@@ -69,6 +70,7 @@ pub struct AnimatedCharacter {
     pub direction: Direction,
     // What animation the character is performing
     pub animation_state: AnimationState,
+    #[reflect(ignore)]
     pub animations: HashMap<(AnimationState, Direction), Animation>,
 }
 
