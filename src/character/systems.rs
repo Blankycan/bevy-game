@@ -1,30 +1,15 @@
-use std::f32::{consts::PI, EPSILON};
+use std::f32::consts::PI;
+use std::f32::EPSILON;
 
-use bevy::{prelude::*, utils::HashMap};
+use bevy::prelude::*;
+use bevy::utils::HashMap;
 use bevy_sprite3d::{AtlasSprite3d, Sprite3dParams};
 
-use crate::{
-    animation::{
-        set_animation_state, AnimatedCharacter, Animation, AnimationState, Direction,
-        TurnTowardCamera,
-    },
-    GameState, ImageAssets,
-};
-
-pub struct PlayerPlugin;
-
-impl Plugin for PlayerPlugin {
-    fn build(&self, app: &mut App) {
-        app
-            // Register types
-            .register_type::<TurnTowardCamera>()
-            //.register_type::<AnimatedCharacter>()
-            // On enter
-            .add_systems((spawn_player, spawn_npcs).in_schedule(OnEnter(GameState::Playing)))
-            // On update
-            .add_system(control_player.in_set(OnUpdate(GameState::Playing)));
-    }
-}
+use super::components::*;
+use crate::animation::components::Direction;
+use crate::animation::components::*;
+use crate::animation::systems::*;
+use crate::ImageAssets;
 
 pub fn spawn_player(
     mut commands: Commands,
@@ -282,7 +267,7 @@ pub fn spawn_npcs(
         });
 }
 
-fn control_player(
+pub fn control_player(
     mut player_query: Query<
         (&mut Transform, &Movable, &mut AnimatedCharacter),
         (With<Player>, Without<Camera>),
@@ -360,39 +345,4 @@ fn get_flat_camera_forward_and_right(camera_transform: &Transform) -> (Vec3, Vec
     let right = Quat::from_euler(EulerRot::XYZ, 0.0, -PI * 0.5, 0.0) * forward;
 
     (forward, right)
-}
-
-#[derive(Component)]
-pub struct Player;
-
-#[derive(Component)]
-pub struct Movable {
-    walk_speed: f32,
-    run_speed: f32,
-}
-
-impl Default for Movable {
-    fn default() -> Self {
-        Self {
-            walk_speed: 2.0,
-            run_speed: 5.0,
-        }
-    }
-}
-
-#[derive(Bundle)]
-struct CharacterBundle {
-    movable: Movable,
-    turn_to_camera: TurnTowardCamera,
-    animated_character: AnimatedCharacter,
-}
-
-impl Default for CharacterBundle {
-    fn default() -> Self {
-        Self {
-            movable: Movable { ..default() },
-            turn_to_camera: TurnTowardCamera(true),
-            animated_character: AnimatedCharacter { ..default() },
-        }
-    }
 }
