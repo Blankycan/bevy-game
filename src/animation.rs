@@ -253,9 +253,9 @@ fn turning_toward_camera(
     let camera = camera_query.single();
     for (should_turn, mut obj_transform, animated_character, atlas_sprite) in &mut object_query {
         if should_turn.0 {
-            let mut look_position = camera.translation - obj_transform.translation;
+            let mut look_position = camera.translation - camera.forward() * 10.0;
             look_position.y = 0.0;
-            let rotation = Transform::IDENTITY
+            let rotation = Transform::from_translation(obj_transform.translation)
                 .looking_at(look_position, Vec3::Y)
                 .rotation;
             obj_transform.rotation = obj_transform
