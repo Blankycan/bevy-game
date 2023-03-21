@@ -1,7 +1,11 @@
 use bevy::prelude::*;
 use bevy_asset_loader::prelude::*;
+use bevy_atmosphere::prelude::*;
 use bevy_inspector_egui::quick::WorldInspectorPlugin;
 use bevy_sprite3d::Sprite3dPlugin;
+
+mod systems;
+use systems::*;
 
 pub mod animation;
 mod camera;
@@ -41,37 +45,75 @@ fn main() {
         // Other plugins
         .add_plugin(Sprite3dPlugin)
         // Our systems
-        .add_startup_system(spawn_basic_scene)
         .add_plugin(CameraPlugin)
         .add_plugin(PlayerPlugin)
         .add_plugin(AnimationPlugin)
+        .add_startup_system(spawn_basic_scene)
+        .add_system(change_nishita)
         .run();
 }
 
-fn spawn_basic_scene(
-    mut commands: Commands,
-    mut meshes: ResMut<Assets<Mesh>>,
-    mut materials: ResMut<Assets<StandardMaterial>>,
-) {
-    // Ground plane
-    commands
-        .spawn(PbrBundle {
-            mesh: meshes.add(Mesh::from(shape::Plane::from_size(10.0))),
-            material: materials.add(Color::rgb(0.4, 0.8, 0.4).into()),
+fn change_nishita(mut commands: Commands, keys: Res<Input<KeyCode>>) {
+    if keys.just_pressed(KeyCode::Key1) {
+        info!("Changed to Atmosphere Preset 1 (Sunset)");
+        commands.insert_resource(AtmosphereModel::new(Nishita {
+            sun_position: Vec3::new(0., 0., -1.),
             ..default()
-        })
-        .insert(Name::new("Ground"));
-
-    // Light
-    commands
-        .spawn(PointLightBundle {
-            point_light: PointLight {
-                intensity: 1500.0,
-                shadows_enabled: true,
-                ..default()
-            },
-            transform: Transform::from_xyz(4.0, 8.0, 4.0),
+        }));
+    } else if keys.just_pressed(KeyCode::Key2) {
+        info!("Changed to Atmosphere Preset 2 (Noir Sunset)");
+        commands.insert_resource(AtmosphereModel::new(Nishita {
+            sun_position: Vec3::new(0., 0., -1.),
+            rayleigh_coefficient: Vec3::new(1e-5, 1e-5, 1e-5),
             ..default()
-        })
-        .insert(Name::new("Point Light"));
+        }));
+    } else if keys.just_pressed(KeyCode::Key3) {
+        info!("Changed to Atmosphere Preset 3 (Magenta)");
+        commands.insert_resource(AtmosphereModel::new(Nishita {
+            rayleigh_coefficient: Vec3::new(2e-5, 1e-5, 2e-5),
+            ..default()
+        }));
+    } else if keys.just_pressed(KeyCode::Key4) {
+        info!("Changed to Atmosphere Preset 4 (Strong Mie)");
+        commands.insert_resource(AtmosphereModel::new(Nishita {
+            mie_coefficient: 5e-5,
+            ..default()
+        }));
+    } else if keys.just_pressed(KeyCode::Key5) {
+        info!("Changed to Atmosphere Preset 5 (Larger Scale)");
+        commands.insert_resource(AtmosphereModel::new(Nishita {
+            rayleigh_scale_height: 16e3,
+            mie_scale_height: 2.4e3,
+            ..default()
+        }));
+    } else if keys.just_pressed(KeyCode::Key6) {
+        info!("Changed to Atmosphere Preset 6 (Weak Intensity)");
+        commands.insert_resource(AtmosphereModel::new(Nishita {
+            sun_intensity: 11.0,
+            ..default()
+        }));
+    } else if keys.just_pressed(KeyCode::Key7) {
+        info!("Changed to Atmosphere Preset 7 (Half Radius)");
+        commands.insert_resource(AtmosphereModel::new(Nishita {
+            ray_origin: Vec3::new(0., 6372e3 / 2., 0.),
+            planet_radius: 6371e3 / 2.,
+            atmosphere_radius: 6471e3 / 2.,
+            ..default()
+        }));
+    } else if keys.just_pressed(KeyCode::Key8) {
+        info!("Changed to Atmosphere Preset 8 (Sideways World)");
+        commands.insert_resource(AtmosphereModel::new(Nishita {
+            ray_origin: Vec3::new(6372e3, 0., 0.),
+            ..default()
+        }));
+    } else if keys.just_pressed(KeyCode::Key9) {
+        info!("Changed to Atmosphere Preset 9 (Inverted Mie Direction)");
+        commands.insert_resource(AtmosphereModel::new(Nishita {
+            mie_direction: -0.758,
+            ..default()
+        }));
+    } else if keys.just_pressed(KeyCode::Key0) {
+        info!("Reset Atmosphere to Default");
+        commands.remove_resource::<AtmosphereModel>();
+    }
 }

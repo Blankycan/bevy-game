@@ -1,7 +1,6 @@
-use bevy::{
-    input::mouse::{MouseMotion, MouseWheel},
-    prelude::*,
-};
+use bevy::input::mouse::{MouseMotion, MouseWheel};
+use bevy::prelude::*;
+use bevy_atmosphere::prelude::*;
 
 use super::components::*;
 use crate::character::components::Player;
@@ -18,6 +17,7 @@ pub fn spawn_camera(mut commands: Commands) {
             offset: Vec3::new(0.0, 0.5, 0.0),
             ..default()
         })
+        .insert(AtmosphereCamera::default())
         .insert(Name::new("Follow Camera"));
 }
 
