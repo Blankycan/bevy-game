@@ -8,7 +8,7 @@ use crate::{
         set_animation_state, AnimatedCharacter, Animation, AnimationState, Direction,
         TurnTowardCamera,
     },
-    GameState, GameSystemLabel, ImageAssets,
+    GameState, ImageAssets,
 };
 
 pub struct PlayerPlugin;
@@ -20,13 +20,9 @@ impl Plugin for PlayerPlugin {
             .register_type::<TurnTowardCamera>()
             //.register_type::<AnimatedCharacter>()
             // On enter
-            .add_system_set(
-                SystemSet::on_enter(GameState::Playing)
-                    .with_system(spawn_player.label(GameSystemLabel::Player))
-                    .with_system(spawn_npcs),
-            )
+            .add_systems((spawn_player, spawn_npcs).in_schedule(OnEnter(GameState::Playing)))
             // On update
-            .add_system_set(SystemSet::on_update(GameState::Playing).with_system(control_player));
+            .add_system(control_player.in_set(OnUpdate(GameState::Playing)));
     }
 }
 

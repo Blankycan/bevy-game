@@ -15,11 +15,7 @@ impl Plugin for AnimationPlugin {
             // Register types
             .register_type::<TurnTowardCamera>()
             // On update
-            .add_system_set(
-                SystemSet::on_update(GameState::Playing)
-                    .with_system(turning_toward_camera)
-                    .with_system(animate_sprite_system),
-            );
+            .add_systems((turning_toward_camera, animate_sprite_system).chain().in_set(OnUpdate(GameState::Playing)));
     }
 }
 

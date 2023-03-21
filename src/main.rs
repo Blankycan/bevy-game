@@ -13,14 +13,15 @@ mod character;
 use crate::animation::AnimationPlugin;
 use crate::character::{Player, PlayerPlugin};
 
-#[derive(Clone, Debug, Eq, Hash, PartialEq)]
+#[derive(Debug, Clone, Copy, Default, Eq, PartialEq, Hash, States)]
 enum GameState {
+    #[default]
     Loading,
     Playing,
 }
 
-#[derive(SystemLabel)]
-pub enum GameSystemLabel {
+#[derive(Debug, Hash, PartialEq, Eq, Clone, SystemSet)]
+pub enum GameSystemSet {
     Player,
     Camera,
 }
@@ -36,16 +37,17 @@ pub struct ImageAssets {
 fn main() {
     println!("Starting Bevy app..");
     App::new()
+        .add_state::<GameState>()
+        .configure_set(GameSystemSet::Player.before(GameSystemSet::Camera))
         .add_loading_state(
             LoadingState::new(GameState::Loading)
                 .continue_to_state(GameState::Playing)
-                .with_collection::<ImageAssets>(),
         )
-        .add_state(GameState::Loading)
+        .add_collection_to_loading_state::<_, ImageAssets>(GameState::Loading)
         .insert_resource(ClearColor(Color::rgb(0.16, 0.16, 0.16)))
         .add_plugins(DefaultPlugins.set(ImagePlugin::default_nearest()))
         // Inspector
-        .add_plugin(WorldInspectorPlugin)
+        .add_plugin(WorldInspectorPlugin::new())
         // Other plugins
         .add_plugin(Sprite3dPlugin)
         // Our systems
@@ -54,11 +56,7 @@ fn main() {
         .add_startup_system(spawn_basic_scene)
         .add_plugin(PlayerPlugin)
         .add_plugin(AnimationPlugin)
-        .add_system_set(
-            SystemSet::on_update(GameState::Playing)
-                .with_system(camera_follow)
-                .with_system(camera_control),
-        )
+        .add_systems((camera_follow, camera_control).in_set(OnUpdate(GameState::Playing)))
         .run();
 }
 
@@ -204,7 +202,7 @@ fn spawn_basic_scene(
     // Ground plane
     commands
         .spawn(PbrBundle {
-            mesh: meshes.add(Mesh::from(shape::Plane { size: 10.0 })),
+            mesh: meshes.add(Mesh::from(shape::Plane::from_size(10.0))),
             material: materials.add(Color::rgb(0.4, 0.8, 0.4).into()),
             ..default()
         })
