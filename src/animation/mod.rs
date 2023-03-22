@@ -18,7 +18,11 @@ impl Plugin for AnimationPlugin {
             .register_type::<AnimatedCharacter>()
             // On update
             .add_systems(
-                (turning_toward_camera, animate_sprite_system)
+                (
+                    turning_toward_camera,
+                    update_character_direction,
+                    animate_sprite_system,
+                )
                     .chain()
                     .in_set(OnUpdate(GameState::Playing)),
             );

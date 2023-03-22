@@ -57,13 +57,13 @@ fn change_nishita(mut commands: Commands, keys: Res<Input<KeyCode>>) {
     if keys.just_pressed(KeyCode::Key1) {
         info!("Changed to Atmosphere Preset 1 (Sunset)");
         commands.insert_resource(AtmosphereModel::new(Nishita {
-            sun_position: Vec3::new(0., 0., -1.),
+            sun_position: Vec3::new(0., 1., -1.),
             ..default()
         }));
     } else if keys.just_pressed(KeyCode::Key2) {
         info!("Changed to Atmosphere Preset 2 (Noir Sunset)");
         commands.insert_resource(AtmosphereModel::new(Nishita {
-            sun_position: Vec3::new(0., 0., -1.),
+            sun_position: Vec3::new(0., 1., -1.),
             rayleigh_coefficient: Vec3::new(1e-5, 1e-5, 1e-5),
             ..default()
         }));

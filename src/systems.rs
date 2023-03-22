@@ -11,7 +11,7 @@ pub fn spawn_basic_scene(
     commands
         .spawn(PbrBundle {
             mesh: meshes.add(Mesh::from(shape::Plane::from_size(10.0))),
-            material: materials.add(Color::rgb(0.4, 0.8, 0.4).into()),
+            material: materials.add(Color::rgb(0.35, 0.6, 0.25).into()),
             ..default()
         })
         .insert(Name::new("Ground"));
@@ -32,8 +32,8 @@ pub fn spawn_basic_scene(
     */
 
     commands.insert_resource(AmbientLight {
-        color: Color::WHITE,
-        brightness: 1.0,
+        color: Color::rgb(1.0, 0.839, 0.667),
+        brightness: 0.667,
     });
 
     /*
@@ -73,12 +73,9 @@ pub fn spawn_basic_scene(
         },
         transform: Transform {
             translation: Vec3::new(0.0, 2.0, 0.0),
-            rotation: Quat::from_rotation_x(-PI / 4.),
+            rotation: Quat::from_rotation_x(-PI * 0.2).mul_quat(Quat::from_rotation_y(PI * 0.1)),
             ..default()
         },
-        // The default cascade config is designed to handle large scenes.
-        // As this example has a much smaller world, we can tighten the shadow
-        // bounds for better visual quality.
         cascade_shadow_config: CascadeShadowConfigBuilder {
             first_cascade_far_bound: 4.0,
             maximum_distance: 40.0,

@@ -91,7 +91,6 @@ pub fn set_animation_state(
 
 // Try to reset the current animation
 pub fn reset_animation(animated_character: &mut AnimatedCharacter) {
-    println!("reset_animation");
     let state = animated_character.animation_state;
     let direction = animated_character.direction;
     let some_animation = animated_character.animations.get_mut(&(state, direction));
@@ -99,6 +98,44 @@ pub fn reset_animation(animated_character: &mut AnimatedCharacter) {
         let animation = some_animation.unwrap();
         animation.current = 0;
         animation.timer.reset();
+    }
+}
+
+pub fn turning_toward_camera(
+    mut object_query: Query<(&TurnTowardCamera, &mut Transform)>,
+    camera_query: Query<&Transform, (With<Camera>, Without<TurnTowardCamera>)>,
+    time: Res<Time>,
+) {
+    let camera = camera_query.single();
+    let look_position = (camera.translation - camera.forward() * 10.0) * Vec3::new(1.0, 0.0, 1.0);
+
+    for (should_turn, mut obj_transform) in &mut object_query {
+        if !should_turn.0 {
+            return;
+        }
+
+        let rotation = Transform::from_translation(obj_transform.translation)
+            .looking_at(look_position, Vec3::Y)
+            .rotation
+            .mul_quat(Quat::from_rotation_y(PI));
+        obj_transform.rotation = obj_transform
+            .rotation
+            .slerp(rotation, time.delta_seconds() * 10.0);
+    }
+}
+
+pub fn update_character_direction(
+    mut query: Query<(&mut AnimatedCharacter, &mut AtlasSprite3dComponent)>,
+    camera_query: Query<&Transform, (With<Camera>, Without<TurnTowardCamera>)>,
+) {
+    let camera = camera_query.single();
+    let look_position = (camera.translation - camera.forward() * 10.0) * Vec3::new(1.0, 0.0, 1.0);
+
+    for (mut animated_character, mut atlas_sprite) in &mut query {
+        let direction = get_character_direction(&animated_character, look_position);
+        if direction != animated_character.direction {
+            set_character_direction(&mut animated_character, direction, &mut atlas_sprite);
+        }
     }
 }
 
@@ -131,51 +168,7 @@ pub fn animate_sprite_system(
 
         // Update the atlas sprite
         if atlas_sprite.index != current_sprite_index {
-            println!(
-                "animate_sprite_system, {}, index: ({}, {}), frames: {:?}",
-                direction, state, current_sprite_index, animation.frames
-            );
             atlas_sprite.index = current_sprite_index;
-        }
-    }
-}
-
-pub fn turning_toward_camera(
-    mut object_query: Query<(
-        &TurnTowardCamera,
-        &mut Transform,
-        Option<&mut AnimatedCharacter>,
-        Option<&mut AtlasSprite3dComponent>,
-    )>,
-    camera_query: Query<&Transform, (With<Camera>, Without<TurnTowardCamera>)>,
-    time: Res<Time>,
-) {
-    let camera = camera_query.single();
-    for (should_turn, mut obj_transform, animated_character, atlas_sprite) in &mut object_query {
-        if should_turn.0 {
-            let mut look_position = camera.translation - camera.forward() * 10.0;
-            look_position.y = 0.0;
-            let rotation = Transform::from_translation(obj_transform.translation)
-                .looking_at(look_position, Vec3::Y)
-                .rotation;
-            obj_transform.rotation = obj_transform
-                .rotation
-                .slerp(rotation, time.delta_seconds() * 10.0);
-
-            // Animated characters should be turned the correct way
-            if let Some(mut animated_character) = animated_character {
-                let direction = get_character_direction(&animated_character, look_position);
-                if direction != animated_character.direction {
-                    println!("Character direction: {}", direction);
-                    if let Some(mut atlas_sprite) = atlas_sprite {
-                        set_character_direction(
-                            &mut animated_character,
-                            direction,
-                            &mut atlas_sprite,
-                        );
-                    }
-                }
-            }
         }
     }
 }
