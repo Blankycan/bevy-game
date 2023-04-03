@@ -62,6 +62,7 @@ impl PartialEq for Animation {
     }
 }
 
+// Perhaps this could be BillboardEntity or something?
 #[derive(Component, Reflect)]
 pub struct AnimatedCharacter {
     // The orientation that the character is facing

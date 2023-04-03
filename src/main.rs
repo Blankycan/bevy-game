@@ -10,9 +10,11 @@ use systems::*;
 pub mod animation;
 mod camera;
 pub mod character;
+pub mod component_sprite;
 use crate::animation::AnimationPlugin;
 use crate::camera::CameraPlugin;
 use crate::character::PlayerPlugin;
+use crate::component_sprite::ComponentSpritePlugin;
 
 #[derive(Debug, Clone, Copy, Default, Eq, PartialEq, Hash, States)]
 enum GameState {
@@ -48,6 +50,7 @@ fn main() {
         .add_plugin(CameraPlugin)
         .add_plugin(PlayerPlugin)
         .add_plugin(AnimationPlugin)
+        .add_plugin(ComponentSpritePlugin)
         .add_startup_system(spawn_basic_scene)
         .add_system(change_nishita)
         .run();
